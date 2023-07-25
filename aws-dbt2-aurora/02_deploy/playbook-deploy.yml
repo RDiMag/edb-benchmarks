@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: dbt2_driver
   name: Install repository
   become: true
   gather_facts: true

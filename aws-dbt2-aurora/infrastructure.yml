@@ -14,19 +14,14 @@ aws:
         - port: 22
           protocol: tcp
           description: "SSH"
-        - port: 30000
-          protocol: tcp
-          description: "DBT-2"
-        - port: 30000
-          protocol: udp
-          description: "DBT-2"
         - port: 5432
           protocol: tcp
           description: "PostgreSQL"
 
   machines:
     dbt2-driver:
-      type: dbt2-driver
+      tags:
+        type: dbt2-driver
       region: us-east-1
       zone: us-east-1b
       instance_type: c5.9xlarge
@@ -37,16 +32,18 @@ aws:
         encrypted: false
 
   aurora:
-    dbt2:
+    postgres:
+      tags:
+        type: dbaas
       region: us-east-1
       zones:
-      - us-east-1b
-      - us-east-1c
+        - us-east-1b
+        - us-east-1c
       count: 1
       engine: aurora-postgresql
       engine_version: 14
+      dbname: "edb"
       instance_type: db.r5.8xlarge
-      dbname: "dbt2"
       username: "postgres"
       password: "12Password!"
       port: 5432

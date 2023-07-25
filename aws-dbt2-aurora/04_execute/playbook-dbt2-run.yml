@@ -12,11 +12,6 @@
         file: "{{ terraform_project_path }}/servers.yml"
         name: infra
 
-    - name: Load infrastructure.yml
-      ansible.builtin.include_vars:
-        file: "../infrastructure.yml"
-        name: structure
-
     # DBT-2 driver bug workaround.
     - name: Ensure required packages are installed
       ansible.builtin.package:
@@ -26,14 +21,7 @@
 
     - name: Get IP address of DBaaS system
       ansible.builtin.command:
-        cmd: >-
-          dig
-          {% if infra.servers.aurora.dbt2.public_ip %}
-            {{ infra.servers.aurora.dbt2.public_ip }}
-          {% else %}
-            {{ infra.servers.aurora.dbt2.private_ip }}
-          {% endif %}
-            +short
+        cmd: dig {{ infra.servers.aurora.postgres.public_ip }} +short
       register: address
 
     - name: Make sure DBT2 target data dir and archive do not exist
@@ -68,21 +56,18 @@
     - name: Start dbt2-run-workload
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ infra.servers.aurora.dbt2.dbname }}
-            -F {{ fpp }}
-            -H {{ address.stdout_lines[-1] }}
-            -n
-            -o /tmp/dbt2-data
-            -s {{ (2700000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -y
-            -z "Aurora PostgreSQL {{ structure.aws.aurora.dbt2.instance_type }} | driver {{ structure.aws.machines["dbt2-driver"].instance_type }} "
+          dbt2 run
+            --comment "Aurora PostgreSQL {{ infra.servers.aurora.postgres.instance_type }} | driver {{ infra.servers.machines["dbt2-driver"].instance_type }}"
+              --connections-per-processor={{ fpp }}
+              --db-host={{ address.stdout_lines[-1] }}
+              --db-port={{ infra.servers.aurora.postgres.port }}
+              --dbaas
+              --districts 1
+              --duration={{ dbt2_duration }}
+              --stats
+              --warehouses={{ dbt2_warehouse }}
+              pgsql
+              /tmp/dbt2-data
       environment:
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
@@ -103,7 +88,7 @@
     - name: Generate DBT2 report
       ansible.builtin.command:
         cmd: >-
-          dbt2-generate-report -i /tmp/dbt2-data
+          dbt2 report --html /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
       changed_when: false
