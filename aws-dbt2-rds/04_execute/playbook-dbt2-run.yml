@@ -12,11 +12,6 @@
         file: "{{ terraform_project_path }}/servers.yml"
         name: infra
 
-    - name: Load infrastructure.yml
-      ansible.builtin.include_vars:
-        file: "../infrastructure.yml"
-        name: structure
-
     # DBT-2 driver bug workaround.
     - name: Ensure required packages are installed
       ansible.builtin.package:
@@ -26,14 +21,7 @@
 
     - name: Get IP address of DBaaS system
       ansible.builtin.command:
-        cmd: >-
-          dig
-          {% if infra.servers.databases.dbt2.public_ip %}
-            {{ infra.servers.databases.dbt2.public_ip }}
-          {% else %}
-            {{ infra.servers.databases.dbt2.private_ip }}
-          {% endif %}
-            +short
+        cmd: dig {{ infra.servers.aurora.postgres.public_ip }} +short
       register: address
 
     - name: Make sure DBT2 target data dir does not exist
@@ -44,6 +32,12 @@
       loop:
         - /tmp/dbt2-data
         - /tmp/dbt2-data.tar.gz
+
+    - name: Display dbt2_connections and ansible_processor_nproc
+      ansible.builtin.debug:
+        msg:
+        - "dbt2_connections: {{ dbt2_connections }}"
+        - "ansible_processor_nproc: {{ ansible_processor_nproc }}"
 
     - name: Calculate drivers per processor
       ansible.builtin.set_fact:
@@ -57,29 +51,23 @@
     - name: Start dbt2-run-workload
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ infra.servers.databases.dbt2.dbname }}
-            -F {{ fpp }}
-            -H {{ address.stdout_lines[-1] }}
-            -n
-            -o /tmp/dbt2-data
-            -s {{ (2700000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -y
-            -z "RDS for PostgreSQL {{ structure.aws.databases.dbt2.instance_type }} | {{ structure.aws.databases.dbt2.volume.size_gb }} GB {{ structure.aws.databases.dbt2.volume.type }} | {{ structure.aws.databases.dbt2.volume.iops }} IOPS | driver {{ structure.aws.machines["dbt2-driver"].instance_type }} "
+          dbt2 run
+            --comment "RDS for PostgreSQL {{ structure.aws.databases.dbt2.instance_type }} | {{ structure.aws.databases.dbt2.volume.size_gb }} GB {{ structure.aws.databases.dbt2.volume.type }} | {{ structure.aws.databases.dbt2.volume.iops }} IOPS | driver {{ structure.aws.machines["dbt2-driver"].instance_type }}"
+            --connections-per-processor{{ fpp }}
+            --db-host={{ address.stdout_lines[-1] }}
+            --db-port={{ infra.servers.databases.dbt2.dbname }}
+            --dbaas
+            --districts 1
+            --duration={{ dbt2_duration }}
+            --stats
+            --warehouses={{ dbt2_warehouse }}
+            pgsql
+            /tmp/dbt2-data
       environment:
-        DRIVER3: "1"
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
       register: run_workload
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
@@ -91,11 +79,9 @@
     - name: Generate DBT2 report
       ansible.builtin.command:
         cmd: >-
-          dbt2-generate-report -i /tmp/dbt2-data
+          dbt2 report --html /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
-      async: 180000
-      poll: 60
       changed_when: false
       register: result
 
