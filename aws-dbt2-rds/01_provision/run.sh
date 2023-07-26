@@ -29,6 +29,7 @@ ansible-playbook "$SOURCEDIR/generate.yml" \
 edb-terraform generate --project-name "${TERRAFORM_PROJECT_NAME}" \
                        --work-path "${SOURCEDIR}/../" \
                        --infra-file "${SOURCEDIR}/../infrastructure.yml" \
+                       --user-templates "${SOURCEDIR}/templates/inventory.yml.tftpl" \
                        --cloud-service-provider aws
 cd "${TERRAFORM_PROJECT_PATH}"
 
