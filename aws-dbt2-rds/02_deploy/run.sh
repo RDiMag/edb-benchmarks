@@ -10,5 +10,6 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 ansible-playbook \
 	-i "${TERRAFORM_PROJECT_PATH}/../inventory.yml" \
+	-e "@${SOURCEDIR}/../environment.yml" \
 	-e "@${SOURCEDIR}/../vars.yml" \
 	"${SOURCEDIR}/playbook-deploy.yml"
