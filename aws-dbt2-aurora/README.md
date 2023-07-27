@@ -3,55 +3,59 @@
 
 AWS DBT2 Aurora is a project that provides benchmark data for DBT2 Aurora on Amazon Web Services (AWS).
 
-### Getting Started
+### Dependencies
 
-To get started Buildbot master and workers are executed through a dedicated Python virtual
-environment.
-
-The following components are installed on the workers:
-- `ansible-core`
-- `terraform`
-- `edb-terraform`
-- `edb-ansible`
-- `biganimal`
-- `tpaexec`
-
-Components needed by host:
 - `terraform >= 1.3.6`
 - `edb-terraform >= 1.0.0`
-- `AWSCli`
-- `ansible-core`
-- `tpaexec`
-
----
-
-Deployment Ansible playbooks are available in the `ansible` directory. These
-playbooks are designed to deploy one buildbot master noder and multiple buildbot
-worker nodes.
-
-Buildbot master and workers are executed through a dedicated Python virtual
-environment.
-
-The following components are installed on the workers:
-- `ansible-core`
-- `terraform`
-- `edb-terraform`
+- `ansible`
 - `edb-ansible`
-- `biganimal`
-- `tpaexec`
+- `AWS CLI`
 
-### Executing a benchmark
+### Getting Started
 
-Execution of a benchmark is accomplished by following the steps below
+This benchmark can be run on a machine with Python installed, or within a Python virtual environment.
 
-- Clicking the `Builders` Link on the left hand navigation
-- Filling all the parameters requested 
-- Executing the `Start build`
+Clone the repo to a local machine.
 
-### Notes:
+```console
+$ git clone https://github.com/EnterpriseDB/edb-benchmarks.git
+```
 
-These are the items to take into account should issues arise:
+### Executing a benchmark by hand
 
-- Should an error within a step of the pipeline for a benchmark fail with an error similar to: "Cannot find the job". Take notice of the step in the workflow and the task. Once you have those items check to see if the `async` and `poll` are commented. **They are currently commented out because they were causing issues with the benchmark**
+Open the terminal from your local machine or from within a virtual environment.
 
+Copy your AWS credentials and paste them into the terminal. They can be found in the Command Line or Programmatic Access menu, under Option 1: Set AWS environment variables (Short-term credentials). This will add the following credentials to your environment as export variables:
 
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+
+From terminal, cd into <your-file-path/edb-benchmarks/aws-dbt2-aurora>.
+
+If desired, make changes to the type or size of the database by editing the [environment file](environment.sh) .
+
+From terminal, cd into 00_validate and run the script:
+
+```console
+$ ./run.sh
+```
+
+cd into 01_provision and run the script.
+
+Wait for the 'Apply Complete' success message.
+
+cd into 02_deploy and run the script.
+
+cd into 03_prepare and run the script. If desired, adjust parameters as needed before running.
+
+Example (change number of warehouses to one):
+
+```console
+$ export DBT2_WAREHOUSE=1
+$ ./run.sh
+```
+
+cd into 04_execute and run the script.
+
+When ready to terminate the instance, cd into 06_unprovision and run the script.
