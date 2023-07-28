@@ -9,7 +9,7 @@ export ANSIBLE_SSH_PIPELINING=true
 export ANSIBLE_HOST_KEY_CHECKING=false
 
 ansible-playbook \
-	-i "${TERRAFORM_PROJECT_PATH}/../inventory.yml" \
+	-i "${TERRAFORM_PROJECT_PATH}/inventory.yml" \
 	-e "@${SOURCEDIR}/../environment.yml" \
 	-e "@${SOURCEDIR}/../vars.yml" \
 	"${SOURCEDIR}/playbook-deploy.yml"

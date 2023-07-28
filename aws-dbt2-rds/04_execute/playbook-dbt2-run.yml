@@ -21,7 +21,7 @@
 
     - name: Get IP address of DBaaS system
       ansible.builtin.command:
-        cmd: dig {{ infra.servers.aurora.postgres.public_ip }} +short
+        cmd: dig {{ infra.servers.databases.postgres.public_ip }} +short
       register: address
 
     - name: Make sure DBT2 target data dir does not exist
@@ -50,12 +50,14 @@
     # up.
     - name: Start dbt2-run-workload
       ansible.builtin.command:
+      # Removed volume info from --comment as volume info is not being captured in the servers.yml file. Ok to remove? 
+      # Or do we need to fix the .j2 file?
         cmd: >-
           dbt2 run
-            --comment "RDS for PostgreSQL {{ structure.aws.databases.dbt2.instance_type }} | {{ structure.aws.databases.dbt2.volume.size_gb }} GB {{ structure.aws.databases.dbt2.volume.type }} | {{ structure.aws.databases.dbt2.volume.iops }} IOPS | driver {{ structure.aws.machines["dbt2-driver"].instance_type }}"
-            --connections-per-processor{{ fpp }}
+            --comment "RDS for PostgreSQL {{ infra.servers.databases.postgres.instance_type }} | driver {{ infra.servers.machines["dbt2-driver"].instance_type }}"
+            --connections-per-processor={{ fpp }}
             --db-host={{ address.stdout_lines[-1] }}
-            --db-port={{ infra.servers.databases.dbt2.dbname }}
+            --db-port={{ infra.servers.databases.postgres.port }}
             --dbaas
             --districts 1
             --duration={{ dbt2_duration }}

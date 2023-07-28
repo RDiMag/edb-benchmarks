@@ -16,7 +16,7 @@
       copy:
         content: |
           # Ansible Generated file inside of {{ playbook_dir }}
-          # lowercase anible variables mapped to UPPERCASE bash environment variables
+          # lowercase ansible variables mapped to UPPERCASE bash environment variables
           {% for variable in bash_variables %}
           {{ variable | lower }}: "{{ '{{' }} lookup('env', '{{ variable | upper }}') {{ '}}' }}"
           {% endfor %}
