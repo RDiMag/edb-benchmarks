@@ -49,7 +49,6 @@ aws:
       username: {{ pg_superuser }}
       password: {{ pg_password }}
       port: {{ pg_port }}
-      {#This does not appear in the infrastructure.yml file, so the variables can't be found by the 04_execute playbook. Fix or remove?#}
       volume:
         size_gb: {{ pg_storage_size }}
         type: {{ pg_storage_type }}

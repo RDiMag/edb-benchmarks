@@ -12,6 +12,11 @@
         file: "{{ terraform_project_path }}/servers.yml"
         name: infra
 
+    - name: Load infrastructure.yml
+      ansible.builtin.include_vars:
+        file: "{{ terraform_project_path }}/../infrastructure.yml"
+        name: structure
+
     # DBT-2 driver bug workaround.
     - name: Ensure required packages are installed
       ansible.builtin.package:
@@ -43,6 +48,11 @@
       ansible.builtin.set_fact:
         fpp: "{{ ((dbt2_connections | int) / ansible_processor_nproc) | int  }}"
 
+    - name: Get start time
+      include_role:
+        name: get-aws-cloudwatch-rds-postgres-stats
+        tasks_from: get-start-time.yml
+
     # Use dbt2_connections as a limit to the number of connections that may be
     # opened, which are opened in units matching the number of processors on
     # the driver system.  Also target a 45 minute (2,700,000 ms) rampup time,
@@ -50,11 +60,9 @@
     # up.
     - name: Start dbt2-run-workload
       ansible.builtin.command:
-      # Removed volume info from --comment as volume info is not being captured in the servers.yml file. Ok to remove? 
-      # Or do we need to fix the .j2 file?
         cmd: >-
           dbt2 run
-            --comment "RDS for PostgreSQL {{ infra.servers.databases.postgres.instance_type }} | driver {{ infra.servers.machines["dbt2-driver"].instance_type }}"
+            --comment "RDS for PostgreSQL {{ infra.servers.databases.postgres.instance_type }} | {{ structure.aws.databases.postgres.volume.size_gb }} GB | {{ structure.aws.databases.postgres.volume.type }} | {{ structure.aws.databases.postgres.volume.iops }} IOPS | driver {{ infra.servers.machines["dbt2-driver"].instance_type }}"
             --connections-per-processor={{ fpp }}
             --db-host={{ address.stdout_lines[-1] }}
             --db-port={{ infra.servers.databases.postgres.port }}
@@ -72,6 +80,11 @@
       register: run_workload
       changed_when: false
       register: result
+
+    - name: Get end time
+      include_role:
+        name: get-aws-cloudwatch-rds-postgres-stats
+        tasks_from: get-end-time.yml
 
     - name: Workload execution output
       ansible.builtin.debug:
@@ -106,3 +119,8 @@
         cmd: |
           tar xzf "{{ results_directory }}/dbt2-data.tar.gz" -C "{{ results_directory }}"
       delegate_to: localhost
+
+    - name: Process metrics
+      include_role:
+        name: get-aws-cloudwatch-rds-postgres-stats
+        tasks_from: process-metrics.yml

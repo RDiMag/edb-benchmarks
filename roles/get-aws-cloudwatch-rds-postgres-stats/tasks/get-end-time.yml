@@ -1,0 +1,13 @@
+---
+  - name: Gather facts on datetime
+    ansible.builtin.setup:
+      filter:
+        - "ansible_date_time"
+
+  - name: Get timestamp from the system
+    shell: "date +%Y-%m-%d-%H:%M:%S"
+    register: tstamp
+
+  - name: Get end time
+    set_fact:
+      end: "{{ tstamp.stdout }}"

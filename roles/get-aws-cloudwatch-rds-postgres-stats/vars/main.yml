@@ -1,0 +1,24 @@
+#  The metric_names below are metric-statistics for use with AWS/RDS resource identifiers.
+---
+  metric_names:
+    - CPUUtilization
+    - DatabaseConnections
+    - DiskQueueDepth
+    - EBSByteBalance%
+    - EBSIOBalance%
+    - FreeableMemory
+    - FreeStorageSpace
+    - MaximumUsedTransactionIDs
+    - NetworkReceiveThroughput
+    - NetworkTransmitThroughput
+    - OldestReplicationSlotLag
+    - ReadIOPS
+    - ReadLatency
+    - ReadThroughput
+    - ReplicationSlotDiskUsage
+    - SwapUsage
+    - TransactionLogsDiskUsage
+    - TransactionLogsGeneration
+    - WriteIOPS
+    - WriteLatency
+    - WriteThroughput

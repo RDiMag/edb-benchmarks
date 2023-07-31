@@ -1,0 +1,8 @@
+---
+  - name: Get timestamp from the system
+    shell: "date +%Y-%m-%d-%H:%M:%S"
+    register: tstamp
+
+  - name: Get start time
+    set_fact:
+      start: "{{ tstamp.stdout }}"
