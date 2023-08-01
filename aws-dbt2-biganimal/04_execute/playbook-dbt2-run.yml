@@ -46,23 +46,20 @@
     - name: Start dbt2-run-workload
       ansible.builtin.command:
         cmd: >-
-          dbt2-run-workload
-            -A
-            -a pgsql
-            -d {{ dbt2_duration }}
-            -D {{ infra.servers.biganimal.dbt2.tags.dbname }}
-            -F {{ fpp }}
-            -H {{ address.stdout_lines[-1] }}
-            -n
-            -o /tmp/dbt2-data
-            -s {{ (2700000 / ((fpp | int) * ansible_processor_nproc)) | int }}
-            -t 1
-            -u
-            -w {{ dbt2_warehouse }}
-            -y
-            -z "BigAnimal PostgreSQL {{ infra.servers.biganimal.dbt2.all.instance_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.size }} {{ infra.servers.biganimal.dbt2.all.storage.0.volume_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.iops }} IOPS | Driver {{ infra.servers.machines.dbt2_driver.instance_type }}"
+          dbt2 run
+            --comment "BigAnimal PostgreSQL {{ infra.servers.biganimal.dbt2.all.instance_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.size }} {{ infra.servers.biganimal.dbt2.all.storage.0.volume_type }} | {{ infra.servers.biganimal.dbt2.all.storage.0.iops }} IOPS | Driver {{ infra.servers.machines.dbt2_driver.instance_type }}"
+            --connections-per-processor={{ fpp }}
+            --db-host={{ address.stdout_lines[-1] }}
+            --db-port={{ infra.servers.biganimal.dbt2.port }}
+            --dbaas
+            --districts 1
+            --duration={{ dbt2_duration }}
+            --stats
+            --warehouses={{ dbt2_warehouse }}
+            pgsql
+            /tmp/dbt2-data
       environment:
-        DRIVER3: "1"
+        # DRIVER3: "1"
         PGHOST: "{{ address.stdout_lines[-1] }}"
       become: true
       become_user: "{{ pg_owner }}"
@@ -80,7 +77,7 @@
     - name: Generate DBT2 report
       ansible.builtin.command:
         cmd: >-
-          dbt2-generate-report -i /tmp/dbt2-data
+          dbt2 report --html /tmp/dbt2-data
       become: true
       become_user: "{{ pg_owner }}"
       changed_when: false
