@@ -52,6 +52,38 @@ Each benchmark should follow the directory structure listed below with a numberi
 ./run_benchmark.sh -b aws-dbt2-aurora
 ```
 
+### Executing a benchmark by hand
+
+Clone the repo to a local machine.
+
+```console
+$ git clone https://github.com/EnterpriseDB/edb-benchmarks.git
+```
+
+From the terminal, set environment variables required by the cloud service provider.
+
+If desired, make changes to the type or size of the database by editing the [environment file](environment.sh).
+
+Source the [environment file](environment.sh).
+```console
+# source ../environment.sh
+```
+
+Execute 00_validate/run.sh
+
+Execute 01_provision/run.sh
+Wait for the 'Apply Complete' success message.
+
+Execute 02_deploy/run.sh
+
+If desired, export additional environment variables manually. 
+
+Execute 03_prepare/run.sh
+
+Execute 04_provision/run.sh
+
+When ready to terminate the instance, execute 06_unprovision/run.sh
+
 ### Contributing:
 
 We welcome contributions! If you have benchmarks that you would like to share follow the steps below:
