@@ -1,6 +1,6 @@
 ## Welcome to the edb-benchmarks repository!
 
-This repository contains workflows for benchmarks that have been previously developed and are ready for a pre-built execution via the Buildbot User Interface.
+This repository contains workflows for benchmarks that have been previously developed and are ready for a pre-built execution via the Buildbot User Interface. They can also be executed manually.
 
 ### Getting Started
 
@@ -22,7 +22,7 @@ Components needed by host:
 - `ansible-core`
 - `tpaexec`
 
-### Executing a benchmark
+### Executing a benchmark in Buildbot
 
 Execution of a benchmark is accomplished by following the steps below
 
