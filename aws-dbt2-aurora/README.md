@@ -1,4 +1,3 @@
-# EDB Benchmarking Automation Center
 ## AWS DBT2 Aurora
 
 AWS DBT2 Aurora is a project that provides benchmark data for DBT2 Aurora on Amazon Web Services (AWS).

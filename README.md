@@ -1,4 +1,3 @@
-# EDB Benchmarking Automation Center
 ## Welcome to the edb-benchmarks repository!
 
 This repository contains workflows for benchmarks that have been previously developed and are ready for a pre-built execution via the Buildbot User Interface.
@@ -35,7 +34,7 @@ Execution of a benchmark is accomplished by following the steps below
 
 Each benchmark should follow the directory structure listed below with a numberic prefix and a step name:
 
-- `00_validate` - Validates the parameters selected for the benchmark execution. **If the validation fails the entire benchmark fails.**
+- `00_validate` - Validates the parameters selected for the benchmark execution. **If the validation fails, the entire benchmark fails.**
 - `01_provision` - Provisions the infrastructure required for executing the benchmark
 - `02_deploy` - Sets up and configures the provisioned infrastructure
 - `03_prepare` - Prepares and sets up the benchmark execution
@@ -44,13 +43,6 @@ Each benchmark should follow the directory structure listed below with a numberi
 - `06_unprovision` - Destroys the previously provisioned infrastructure
 
 **Each directory contains a `run.sh` script file that executes the ansible playbooks required for the benchmark**
-
-** For development, you can use the run_benchmark.sh script to assist in running and debugging each step.
-** Stored in repo with execuation bit on.
-```shell
-./run_benchmark.sh -h
-./run_benchmark.sh -b aws-dbt2-aurora
-```
 
 ### Executing a benchmark by hand
 
@@ -62,27 +54,27 @@ $ git clone https://github.com/EnterpriseDB/edb-benchmarks.git
 
 From the terminal, set environment variables required by the cloud service provider.
 
-If desired, make changes to the type or size of the database by editing the [environment file](environment.sh).
+If desired, make changes to the type or size of the database by editing the environment file: `environment.sh`.
 
-Source the [environment file](environment.sh).
-```console
-# source ../environment.sh
-```
+Source the environment file.
 
-Execute 00_validate/run.sh
+`source <benchmark-directory>/environment.sh`
 
-Execute 01_provision/run.sh
+Execute `<benchmark-directory>/00_validate/run.sh`
+
+Execute `<benchmark-directory>/01_provision/run.sh`
+
 Wait for the 'Apply Complete' success message.
 
-Execute 02_deploy/run.sh
+Execute `<benchmark-directory>/02_deploy/run.sh`
 
 If desired, export additional environment variables manually. 
 
-Execute 03_prepare/run.sh
+Execute `<benchmark-directory>/03_prepare/run.sh`
 
-Execute 04_provision/run.sh
+Execute `<benchmark-directory>/04_provision/run.sh`
 
-When ready to terminate the instance, execute 06_unprovision/run.sh
+When ready to terminate the instance, execute `<benchmark-directory>/06_unprovision/run.sh`
 
 ### Contributing:
 
