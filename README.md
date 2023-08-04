@@ -11,6 +11,7 @@ Components needed by host:
 - `edb-terraform >= 1.5.1`
 - `AWSCli`
 - `ansible-core`
+- `edb-ansible`
 - `tpaexec`
 
 ### Benchmark folder structure:
