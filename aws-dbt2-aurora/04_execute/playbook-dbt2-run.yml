@@ -90,6 +90,12 @@
         name: get-aws-cloudwatch-aurora-postgres-stats
         tasks_from: get-end-time.yml
 
+    - name: Create logs directory
+      local_action: 
+        module: ansible.builtin.file
+        path: "{{ logs_directory }}"
+        state: directory
+
     - name: Get Postgres error log names
       local_action:
         module: ansible.builtin.shell
@@ -97,7 +103,7 @@
           aws rds describe-db-log-files
           --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
           | jq -r '.DescribeDBLogFiles[] | .LogFileName | sub("error/"; "")'
-          > {{ results_directory }}/postgreslog.txt
+          > {{ logs_directory }}/postgreslog.txt
       register: result
 
     - name: Get Postgres error logs
@@ -108,7 +114,7 @@
           --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
           --log-file-name error/{{ item }}
           --starting-token 0
-          > {{ results_directory }}/{{ item }}.json
+          > {{ logs_directory }}/{{ item }}.json
       loop: 
         "{{ lookup('file', 'postgreslog.txt').splitlines() }}"
       register: result
