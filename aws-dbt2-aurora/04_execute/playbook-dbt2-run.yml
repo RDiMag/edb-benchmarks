@@ -90,6 +90,29 @@
         name: get-aws-cloudwatch-aurora-postgres-stats
         tasks_from: get-end-time.yml
 
+    - name: Get Postgres error log names
+      local_action:
+        module: ansible.builtin.shell
+        cmd: >-
+          aws rds describe-db-log-files
+          --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
+          | jq -r '.DescribeDBLogFiles[] | .LogFileName | sub("error/"; "")'
+          > {{ results_directory }}/postgreslog.txt
+      register: result
+
+    - name: Get Postgres error logs
+      local_action:
+        module: ansible.builtin.shell
+        cmd: >-
+          aws rds download-db-log-file-portion
+          --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
+          --log-file-name error/{{ item }}
+          --starting-token 0
+          > {{ results_directory }}/{{ item }}.json
+      loop: 
+        "{{ lookup('file', 'postgreslog.txt').splitlines() }}"
+      register: result
+
     - name: Workload execution output
       ansible.builtin.debug:
         var: result
@@ -122,6 +145,30 @@
         cmd: |
           tar xzf "{{ results_directory }}/dbt2-data.tar.gz" -C "{{ results_directory }}"
       delegate_to: localhost
+
+    # - name: Get Postgres error log names
+    #   local_action:
+    #     module: ansible.builtin.shell
+    #     cmd: >-
+    #       aws rds describe-db-log-files
+    #       --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
+    #       | jq -r '.DescribeDBLogFiles[] | .LogFileName'
+    #       > postgreslog.txt
+    #   register: result
+
+    # - name: Get Postgres error logs
+    #   local_action:
+    #     module: ansible.builtin.shell
+    #     cmd: >-
+    #       aws rds download-db-log-file-portion
+    #       --db-instance-identifier {{ infra.servers.aurora.postgres.resource_id.0 }}
+    #       --log-file-name {{ item }}
+    #       --starting-token 0
+    #       --output text
+    #       > {{ item }}
+    #   loop: 
+    #     "{{ lookup('file', 'postgreslog.txt').splitlines() }}"
+    #   register: result
 
     - name: Process metrics
       include_role:
