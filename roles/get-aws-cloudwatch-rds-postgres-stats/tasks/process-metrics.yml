@@ -15,6 +15,7 @@
         --end-time {{ end }}
         --period 60
         --statistics Average
+        --region {{ infra.servers.databases.postgres.region }}
         --dimensions Name=DBInstanceIdentifier,Value={{ infra.servers.databases.postgres.resource_id }}
         > {{ cloudwatch_directory }}/{{ item }}.json
     loop:
