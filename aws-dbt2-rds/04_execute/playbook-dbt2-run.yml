@@ -95,6 +95,35 @@
         name: get-aws-cloudwatch-rds-postgres-stats
         tasks_from: get-end-time.yml
 
+    - name: Create logs directory
+      local_action: 
+        module: ansible.builtin.file
+        path: "{{ logs_directory }}"
+        state: directory
+
+    - name: Get Postgres error log names
+      local_action:
+        module: ansible.builtin.shell
+        cmd: >-
+          aws rds describe-db-log-files
+          --db-instance-identifier {{ infra.servers.databases.postgres.instance_id }}
+          | jq -r '.DescribeDBLogFiles[] | .LogFileName | sub("error/"; "")'
+          > {{ logs_directory }}/postgreslog.txt
+      register: result
+
+    - name: Get Postgres error logs
+      local_action:
+        module: ansible.builtin.shell
+        cmd: >-
+          aws rds download-db-log-file-portion
+          --db-instance-identifier {{ infra.servers.databases.postgres.instance_id }}
+          --log-file-name error/{{ item }}
+          --starting-token 0
+          > {{ logs_directory }}/{{ item }}.json
+      loop: 
+        "{{ lookup('file', '{{ logs_directory }}/postgreslog.txt').splitlines() }}"
+      register: result
+
     - name: Workload execution output
       ansible.builtin.debug:
         var: result
