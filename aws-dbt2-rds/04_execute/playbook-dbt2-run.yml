@@ -106,7 +106,7 @@
         module: ansible.builtin.shell
         cmd: >-
           aws rds describe-db-log-files
-          --db-instance-identifier {{ infra.servers.databases.postgres.instance_id }}
+          --db-instance-identifier {{ infra.servers.databases.postgres.resource_id }}
           | jq -r '.DescribeDBLogFiles[] | .LogFileName | sub("error/"; "")'
           > {{ logs_directory }}/postgreslog.txt
       register: result
@@ -116,7 +116,7 @@
         module: ansible.builtin.shell
         cmd: >-
           aws rds download-db-log-file-portion
-          --db-instance-identifier {{ infra.servers.databases.postgres.instance_id }}
+          --db-instance-identifier {{ infra.servers.databases.postgres.resource_id }}
           --log-file-name error/{{ item }}
           --starting-token 0
           > {{ logs_directory }}/{{ item }}.json
